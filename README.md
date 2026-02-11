@@ -1,5 +1,4 @@
 # Linux Miner Infection  
-## Root-Level Persistence via /etc/init.d
 
 ---
 
@@ -79,6 +78,65 @@ This detection prompted analysis of:
   
 ---
 
+### First Look Into Compromised Device
+
+```kql
+DeviceProcessEvents
+| where DeviceName contains "fix-michael"
+| where TimeGenerated >= ago(15d)
+| order by TimeGenerated desc
+| project TimeGenerated, AccountName, DeviceName, FileName, FolderPath, InitiatingProcessParentFileName, ProcessCommandLine
+```
+
+<img width="1144" height="326" alt="image" src="https://github.com/user-attachments/assets/d4180bbb-a5bd-4228-849a-da6448cde0a9" />
+
+<br>
+
+- What this means:
+   - A persistent root-level session existed for ~48 hours
+   - That session repeatedly executed thousands of short-lived binaries
+   - Filenames were randomized
+   - Execution counts were throttled per binary
+   - Activity pattern indicates automation, not human typing
+   - Behavior is inconsistent with legitimate admin activity
+
+<img width="1184" height="470" alt="image" src="https://github.com/user-attachments/assets/5deb645c-ed6c-4d8c-bbab-548841fd69e9" />
+
+- Session ID `79416`
+   - Value is derived from Linux and added by MDE
+   - Correlates sessions to file name randomization
+   - Logs show **over 15,000** commands linking to the same session for this VM
+   - All originating from the same ParentFile `ygljglkjgfg0`
+   - Each command is within milliseconds of each other
+
+```
+Linux kernel:  creates session 79416
+        ↓
+MDE sensor:   observes + labels it
+        ↓
+Log Analytics: stores & exposes it
+```
+
+---
+
+### Authentication Context and Lab Configuration
+
+At the time of compromise, the VM was actively being used for a **student lab exercise** designed to trigger insecure authentication practices for Tenable scans.
+
+Lab configuration included:
+
+- SSH access intentionally exposed  
+- **Root password set to `root`**  
+- Expected vulnerability generation in Tenable
+
+<img width="790" height="274" alt="image" src="https://github.com/user-attachments/assets/d043b7bf-4f49-40da-9512-3ed08265f18c" />
+
+This configuration mirrors conditions exploited by real-world automated attack campaigns. Multiple external IP addresses attempted authentication across multiple lab VMs, consistent with **opportunistic brute-force activity**.
+
+The successful `root` authentication observed during this investigation is attributed to **external automated intrusion**, not legitimate student activity.
+
+---
+
 ### Student changes Root password
 - Student begins the lab, changing root password to 'root'
    - `2026-01-30T13:50:32.826013Z` (1:50pm) — /etc/shadow edited by labuser via root (likely a password change)
@@ -111,7 +169,7 @@ DeviceFileEvents
  
 ### Root Cron Persistence
 
-<img width="1104" height="345" alt="image" src="https://github.com/user-attachments/assets/1770c4e6-7410-4422-9f9a-e19af14f3de1" />
+<img width="1280" height="393" alt="image" src="https://github.com/user-attachments/assets/befdedff-5972-4200-bc63-a321887ec73e" />
 
 start time: 2026-01-30T14:04:23.447447Z
 end: 2026-02-02T22:47:03.418251Z
@@ -199,62 +257,7 @@ Cleanup & rename: old cron temp files are renamed/removed to hide traces.
 
 <br>
 
-### Authentication Context and Lab Configuration
-
-At the time of compromise, the VM was actively being used for a **student lab exercise** designed to trigger insecure authentication practices for Tenable scans.
-
-Lab configuration included:
-
-- SSH access intentionally exposed  
-- **Root password set to `root`**  
-- Expected vulnerability generation in Tenable
-
-<img width="790" height="274" alt="image" src="https://github.com/user-attachments/assets/d043b7bf-4f49-40da-9512-3ed08265f18c" />
-
-This configuration mirrors conditions exploited by real-world automated attack campaigns. Multiple external IP addresses attempted authentication across multiple lab VMs, consistent with **opportunistic brute-force activity**.
-
-The successful `root` authentication observed during this investigation is attributed to **external automated intrusion**, not legitimate student activity.
-
 ---
-
-### First Look Into Compromised Device
-
-```kql
-DeviceProcessEvents
-| where DeviceName contains "fix-michael"
-| where TimeGenerated >= ago(15d)
-| order by TimeGenerated desc
-| project TimeGenerated, AccountName, DeviceName, FileName, FolderPath, InitiatingProcessParentFileName, ProcessCommandLine
-```
-
-<img width="1144" height="326" alt="image" src="https://github.com/user-attachments/assets/d4180bbb-a5bd-4228-849a-da6448cde0a9" />
-
-<br>
-
-- What this means:
-   - A persistent root-level session existed for ~48 hours
-   - That session repeatedly executed thousands of short-lived binaries
-   - Filenames were randomized
-   - Execution counts were throttled per binary
-   - Activity pattern indicates automation, not human typing
-   - Behavior is inconsistent with legitimate admin activity
-
-<img width="1184" height="470" alt="image" src="https://github.com/user-attachments/assets/5deb645c-ed6c-4d8c-bbab-548841fd69e9" />
-
-- Session ID `79416`
-   - Value is derived from Linux and added by MDE
-   - Correlates sessions to file name randomization
-   - Logs show **over 15,000** commands linking to the same session for this VM
-   - All originating from the same ParentFile `ygljglkjgfg0`
-   - Each command is within milliseconds of each other
-
-```
-Linux kernel:  creates session 79416
-        ↓
-MDE sensor:   observes + labels it
-        ↓
-Log Analytics: stores & exposes it
-```
 
 ### Malicious Binary Download Detected
 
