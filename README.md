@@ -442,5 +442,22 @@ So:
 p.txt = malicious ELF binary
 ygljglkjgfg0 = renamed executable copy
 
-23.160.56.194
+<img width="1186" height="129" alt="image" src="https://github.com/user-attachments/assets/92235bb2-534f-4b07-b581-e0ae091b650f" />
+
+
+AHTKzAEv
+```
+/var/tmp/AHTKzAEv          <- the malicious binary
+  └─ ygljglkjgfg0          <- child process / script spawned by AHTKzAEv
+       └─ owqtmtieus       <- reconnaissance or mining scripts spawned by ygljglkjgfg0
+```
+
+<img width="1035" height="393" alt="image" src="https://github.com/user-attachments/assets/dcc3a47c-84ca-4431-81ed-79a4bed88857" />
+
+
+
+23.160.56.194 > p.txt download
 <img width="1469" height="1026" alt="image" src="https://github.com/user-attachments/assets/048196ef-b444-4d7a-b47c-7378c44183f5" />
+
+109.206.236.18
+Beaconing = the infected machine initiating an outbound connection to an attacker-controlled server.
