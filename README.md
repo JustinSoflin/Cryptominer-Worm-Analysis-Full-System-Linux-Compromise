@@ -1,4 +1,4 @@
-# Full-System Linux Compromise | Cryptomining Worm Analysis  
+# Full-System Linux Compromise | Cryptominer Worm Analysis  
 
 ---
 
