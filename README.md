@@ -322,7 +322,7 @@ rm -rf .bash_history ~/.bash_history
    -  If SSH is open, the malware tries common passwords for user accounts <br>
    <br>
    
-**Passwords from your earlier retea script**
+**Password exerpt from retea script**
 
 ```
 root root
@@ -703,6 +703,17 @@ echo -e "\x61\x75\x74\x68\x5F\x6F\x6B\x0A" # Hex for "auth_ok" (signal success t
 
 ### retea Crypto Mining Worm
 
+**Script reads in part:**
+
+```bash
+if key == [hardcoded string]
+    echo ""
+else
+    echo Logged with successfully.
+    rm -rf .retea
+```
+
+<br>
 
 ```bash
 # ================================
@@ -937,3 +948,9 @@ DeviceNetworkEvents
 
 
 <img width="981" height="271" alt="image" src="https://github.com/user-attachments/assets/266d4ff8-15a4-4b1e-9e64-598347cc6fb4" />
+
+virusttal dinpasiuneDOTcom
+among communicating files: retea & diicot
+
+<img width="1264" height="644" alt="image" src="https://github.com/user-attachments/assets/a1ddd61f-0cfc-4b63-86ef-744a87475176" />
+
