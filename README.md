@@ -16,6 +16,39 @@
 
 ---
 
+## Table of Contents
+
+- [Report Information](#report-information)
+- [Executive Summary](#executive-summary)
+- [Investigation](#investigation)
+  - [Initial Detection: Malware or PUA Observed in MDE](#initial-detection-malware-or-pua-observed-in-mde)
+  - [First Look Into Compromised Device](#first-look-into-compromised-device)
+  - [Authentication Lab Context](#authentication-lab-context)
+  - [Student Password Change & First Compromise Artifact](#student-password-change--first-compromise-artifact)
+  - [Malware Injects Password Hash for Root](#malware-injects-password-hash-for-root)
+  - [diicot](#diicot)
+  - [SSH Brute Force on Internal Subnet](#ssh-brute-force-on-internal-subnet)
+  - [Root Cron Persistence](#root-cron-persistence)
+  - [.b4nd1d0](#b4nd1d0)
+  - [Malicious Binary Download p.txt & r.txt](#malicious-binary-download-ptxt--rtxt)
+  - [p.txt Variants](#ptxt-variants)
+  - [Binary Relocation and Renaming](#binary-relocation-and-renaming)
+  - [Running in Memory for "File-less" Execution](#running-in-memory-for-file-less-execution)
+  - [Persistence via /etc/init.d](#persistence-via-etcinitd)
+  - [SSH Key Implantation](#ssh-key-implantation)
+  - [Crypto Mining Worm retea](#crypto-mining-worm-retea)
+  - [Cloud Provider Disables Azure VNet](#cloud-provider-disables-azure-vnet)
+  - [Cyber Range Engineer Responds](#cyber-range-engineer-responds)
+- [Recommended Actions](#recommended-actions)
+  - [Immediate Recovery](#immediate-recovery)
+  - [Monitoring & Detection Improvements](#monitoring--detection-improvements)
+- [Conclusion](#conclusion)
+- [Key Takeaways](#key-takeaways)
+
+<br>
+
+---
+
 # Executive Summary
 
 On **January 30, 2026**, a student Linux virtual machine `linux-programmatic-fix-michael` in the Cyber Range environment was fully compromised by an automated crypto-mining malware campaign known as **Diicot _(aka Mexals)_**. The malware exploited intentionally weak authentication configured for a lab exercise, installing unauthorized software, creating persistent backdoors, and performing reconnaissance.
@@ -36,26 +69,6 @@ The compromise occurred **less than 15 minutes** after the student updated crede
 | Cloud Response | No response from Azure cloud services |
 
 <Br>
-
----
-
-## Table of Contents
-
-- [Executive Summary](#executive-summary)
-- [Investigation](#investigation)
-  - [Initial Detection: Malware or PUA Observed](#initial-detection-malware-or-pua-observed)
-  - [Authentication Context and Lab Configuration](#authentication-context-and-lab-configuration)
-  - [Malicious Binary Download Detected](#malicious-binary-download-detected)
-  - [Multiple Download Methods Observed](#multiple-download-methods-observed)
-  - [Binary Relocation and Renaming](#binary-relocation-and-renaming)
-  - [Persistence via /etc/init.d](#persistence-via-etcinitd)
-  - [Log Tampering via cat /dev/null](#log-tampering-via-cat-devnull)
-  - [SSH Key Implantation](#ssh-key-implantation)
-  - [Malware Validation and Classification](#malware-validation-and-classification)
-- [Recommended Actions](#recommended-actions)
-- [Conclusion](#conclusion)
-
-<br>
 
 ---
 
