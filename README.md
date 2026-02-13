@@ -910,8 +910,10 @@ Miner
 <img width="1957" height="1055" alt="image" src="https://github.com/user-attachments/assets/4c4f3dff-2186-42ee-8672-adaf360bdfff" />
 
 <br>
+<br>
 
-**Cyber Range Engineer responds**
+## Cyber Range Engineer responds
+
 - New outbound rules for _SSH_ and common crypto miner ports denied
    - Ports 22, 3333, 4444, 5555, etc.
 - VMs can continue Root Labs without scanning outbound IPs, even if compromised
