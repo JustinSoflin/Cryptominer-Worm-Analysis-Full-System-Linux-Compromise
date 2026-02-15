@@ -1,5 +1,4 @@
-# Diicot _(aka Mexals)_ Cryptominer Worm Analysis | Full System Linux Compromise
-
+# Diicot _(aka Mexals)_ Cryptominer Worm Case Study | Full-System Linux Compromise
 ## Report Information
 
 - **Analyst:** Justin Soflin  
