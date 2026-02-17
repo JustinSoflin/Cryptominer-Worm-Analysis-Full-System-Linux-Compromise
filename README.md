@@ -34,7 +34,7 @@
      - [Malware or PUA Observed in MDE](#malware-or-pua-observed-in-mde)
   - [Analysis](#analysis) 
      - [First Look Into Compromised Device](#first-look-into-compromised-device)
-     - [Student & Malicious IP Logins](3student--malicious-ip-logins)
+     - [Student & Malicious IP Logins](#student--malicious-ip-logins)
      - [First Compromise Artifact](#first-compromise-artifact)
      - [Malware Injects Password Hash for Root](#malware-injects-password-hash-for-root)
      - [SSH Brute Force on Internal Subnet](#ssh-brute-force-on-internal-subnet)
