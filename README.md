@@ -76,7 +76,7 @@ Following the April 2025 event, containment and segmentation improvements were i
 <br>
 
 **From Microsoft Security Blog** <br>
-<img width="708" height="237" alt="image" src="https://github.com/user-attachments/assets/bfe2f5e9-04ec-4ff1-87cb-0c80330a17e0" />
+<img width="696" height="219" alt="image" src="https://github.com/user-attachments/assets/cea2d87a-567f-4081-a268-d4ada1e3c6f0" />
 
 <br>
 
@@ -109,7 +109,7 @@ At the time of compromise, the VM was actively being used for a **student lab ex
 
 <br>
 
-<img width="764" height="212" alt="image" src="https://github.com/user-attachments/assets/88779564-9ad3-4531-9fcd-cd627f7525d0" />
+<img width="1281" height="357" alt="image" src="https://github.com/user-attachments/assets/4c25e7a0-6201-423f-8ca6-322a4cc5d267" />
 
 <br>
 
@@ -121,7 +121,7 @@ Lab configuration included:
 <br>
 
 **Students are instructed to destroy VM asap when lab is finished** to avoid compromise <br>
-<img width="788" height="386" alt="image" src="https://github.com/user-attachments/assets/7adfaba9-8836-42cf-a495-8014fff03e91" />
+<img width="1274" height="626" alt="image" src="https://github.com/user-attachments/assets/9061ba22-5eb5-4622-93de-f91ace7e7c97" />
 
 <br>
 
@@ -150,7 +150,7 @@ Lab configuration included:
 
 <Br>
 
-<img width="1280" height="648" alt="image" src="https://github.com/user-attachments/assets/23305203-e6f9-4434-918b-dd3c6c2dceb1" /> <br>
+<img width="1231" height="632" alt="image" src="https://github.com/user-attachments/assets/c17c52c7-3007-4a89-bf86-82a65c717e1c" />
 
 <br>
 
@@ -1062,7 +1062,7 @@ function Miner {
 }
 
 Miner
-'
+' ./retea KOFVwMxV7k7XjP7fwXPY6Cmp16vf8EnL54650LjYb6WYBtuSs3Zd1Ncr3SrpvnAU Haceru
 ```
 
 <br>
